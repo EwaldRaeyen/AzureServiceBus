@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace AzureServiceBus.Services.Interfaces
 {
-    public interface IMessageReceiver
+    public interface ITopicMessageReceiver
     {
-        Task<string> ConsumeAsync();
+        Task<Event> ReceiveMessageAsync(string topicName, string subscriptionName, CancellationToken cancellationToken);
     }
 }

@@ -7,5 +7,6 @@
         //public string TodoListQueue { get; set; }
         public string TodoItemQueue { get; set; }
         public string TodoItemTopic { get; set; }
+        public string TodoItemSubscription { get; set; }
     }
 }

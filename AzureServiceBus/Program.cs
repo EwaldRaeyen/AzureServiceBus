@@ -27,6 +27,8 @@ using IHost host = Host.CreateDefaultBuilder(args)
 
         services.AddScoped<IMessageSender, AzureServiceBusSender>();
         services.AddScoped<IMessageReceiver, AzureServiceBusReceiver>();
+        services.AddScoped<ITopicMessageReceiver, AzureServiceBusTopicReader>();
+
     })
     .Build();
 
@@ -39,8 +41,8 @@ try
     //await Task.Delay(2000);
     //await ReceiveMessage();
 
-    await SendEvent();
-    await ReceiveEvent(); // use subscription and listen to events
+    await SendTopicMessage("test2");
+    await ReceiveTopicMessage(); // use subscription and listen to events
 }
 catch (Exception ex)
 {
@@ -58,7 +60,7 @@ async Task SendMessage()
     await messageSender.SendAsync("test");
 }
 
-async Task SendEvent()
+async Task SendTopicMessage(string text)
 {
     var options = host.Services.GetService<IOptions<AzureServiceBusSettings>>();
     if (options == null) throw new Exception("options is null");
@@ -66,7 +68,7 @@ async Task SendEvent()
     var messageSender = host.Services.GetService<IMessageSender>();
     if (messageSender == null) throw new Exception($"{nameof(messageSender)} is null");
 
-    await messageSender.SendEventAsync(new Event(Guid.NewGuid(), "-1", new { Text = "test" }), options.Value.TodoItemTopic, default);
+    await messageSender.SendEventAsync(new Event(Guid.NewGuid(), "-1", new { Text = text }), options.Value.TodoItemTopic, default);
 }
 
 async Task ReceiveMessage()
@@ -79,15 +81,15 @@ async Task ReceiveMessage()
     Console.WriteLine($"Message: {message}");
 }
 
-async Task ReceiveEvent()
+async Task ReceiveTopicMessage()
 {
     var options = host.Services.GetService<IOptions<AzureServiceBusSettings>>();
     if (options == null) throw new Exception("options is null");
 
-    var messageReceiver = host.Services.GetService<IMessageReceiver>();
+    var messageReceiver = host.Services.GetService<ITopicMessageReceiver>();
     if (messageReceiver == null) throw new Exception($"{nameof(messageReceiver)} is null");
 
-    var @event = await messageReceiver.ConsumeEventAsync(options.Value.TodoItemTopic, default);
+    var @event = await messageReceiver.ReceiveMessageAsync(options.Value.TodoItemTopic, options.Value.TodoItemSubscription, default);
 
     Console.WriteLine($"Message: {@event}");
 }
